@@ -29,7 +29,7 @@ class Flickerer : public QGraphicsScene
     Q_OBJECT
 
 public:
-    explicit Flickerer(int timerInterval, QWidget *parent = 0);
+    explicit Flickerer(int timerInterval);
     void paintGL();
     void drawBackground(QPainter*, const QRectF&);
     void setTimer(int);
@@ -73,7 +73,7 @@ class MainWindow : public QMainWindow
     Q_OBJECT
 
 public:
-    explicit MainWindow(int timerInterval, QWidget *parent = 0);
+    explicit MainWindow(int timerInterval);
     Ui::MainWindow ui;
 
 private:

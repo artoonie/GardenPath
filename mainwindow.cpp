@@ -46,7 +46,7 @@
 Constructor:
   Creates a RedGreenStrip and connects it to the UI
 */
-MainWindow::MainWindow(int timerInterval, QWidget *parent)
+MainWindow::MainWindow(int timerInterval)
 {
     int width = 400; int height = 400;
 
@@ -54,7 +54,7 @@ MainWindow::MainWindow(int timerInterval, QWidget *parent)
     setWindowTitle("Options");
 
     // Set up graphics viewer
-    r = new Flickerer(timerInterval, this);
+    r = new Flickerer(timerInterval);
     // r->resize(width, height);
     r->setSceneRect(0, 0, width, height);
     r->initPainter();
@@ -292,7 +292,7 @@ void MainWindow::closeEvent(QCloseEvent *) {
 Constructor:
   Creates a timer to update as often as user requested
 */
-Flickerer::Flickerer(int timerInterval, QWidget *parent)
+Flickerer::Flickerer(int timerInterval)
 {
     if( timerInterval == 0 )
         m_timer = 0;

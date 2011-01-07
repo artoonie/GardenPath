@@ -15,7 +15,7 @@
 
 #include <QtPlugin>
 #include <QtGui/QApplication>
-#include <QApplication.h>
+//include <QApplication.h>
 #include <QtOpenGL/QGLWidget>
 
 #include "mainwindow.h"
@@ -23,7 +23,7 @@
 int main(int argc, char *argv[])
 {
     QApplication a(argc, argv);
-    MainWindow *w = new MainWindow((int)(12.0/60.0 * 10), NULL);
+    MainWindow *w = new MainWindow((int)(12.0/60.0 * 10));
     w->show();
 
     return a.exec();
