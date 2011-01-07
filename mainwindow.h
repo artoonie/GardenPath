@@ -58,7 +58,6 @@ private:
     int w, h;
     int startx, starty, endx, endy;
 
-    //flicker
     bool showingG1;
 
 public slots:
@@ -89,12 +88,15 @@ private:
 
     QMessageBox* errmsg;
 
+    bool isSetMaxSpeed;
+
 public slots:
     void updateAll();
     void updateColors();
     void updateTimer();
     void updateGradients();
     void updateBrightness();
+    void updateMaxSpeed();
     void preset1();
     void preset2();
     void beginSlot();

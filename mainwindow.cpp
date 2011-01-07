@@ -41,6 +41,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 
+#define MAX_SPEED_VAL -1
+
 
 /**
 Constructor:
@@ -49,6 +51,7 @@ Constructor:
 MainWindow::MainWindow(int timerInterval)
 {
     int width = 400; int height = 400;
+    isSetMaxSpeed = false;
 
     ui.setupUi(this);
     setWindowTitle("Options");
@@ -95,6 +98,7 @@ MainWindow::MainWindow(int timerInterval)
     connect( ui.g1Center, SIGNAL(sliderMoved(int)), this, SLOT(updateGradients()));
     connect( ui.g2Center, SIGNAL(sliderMoved(int)), this, SLOT(updateGradients()));
     connect( ui.hzSlider, SIGNAL(sliderMoved(int)), this, SLOT(updateTimer()));
+    connect( ui.maxSpeed, SIGNAL(released()), this, SLOT(updateMaxSpeed()));
     connect( ui.Preset1, SIGNAL(released()), this, SLOT(preset1()));
     connect( ui.Preset2, SIGNAL(released()), this, SLOT(preset2()));
 
@@ -193,6 +197,20 @@ void MainWindow::updateColors()
 
     // Update the gradient to set the colors
     updateGradients();
+}
+void MainWindow::updateMaxSpeed()
+{
+    if(!isSetMaxSpeed) {
+        r->setTimer(MAX_SPEED_VAL);
+        ui.hzSlider->setEnabled(false);
+        ui.Hztext->setText("Max");
+        ui.maxSpeed->setText("Custom Speed");
+    } else {
+        ui.hzSlider->setEnabled(true);
+        updateTimer();
+        ui.maxSpeed->setText("Max Speed");
+    }
+    isSetMaxSpeed = !isSetMaxSpeed;
 }
 
 
@@ -355,8 +373,8 @@ Set timer:
 void Flickerer::setTimer(int hz)
 {
     int val;
-    if(hz <= 0) val = 100000;
-    else if(hz>=60) val = 0;
+    if(hz==MAX_SPEED_VAL) val = 0;
+    else if(hz <= 0) val = 100000;
     else val = 1000.0 / hz;
     m_timer->setInterval(val);
 }

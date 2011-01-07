@@ -25,7 +25,7 @@
      <rect>
       <x>10</x>
       <y>0</y>
-      <width>450</width>
+      <width>371</width>
       <height>19</height>
      </rect>
     </property>
@@ -33,10 +33,13 @@
      <string notr="true"/>
     </property>
     <property name="maximum">
-     <number>60</number>
+     <number>120</number>
+    </property>
+    <property name="pageStep">
+     <number>10</number>
     </property>
     <property name="value">
-     <number>12</number>
+     <number>60</number>
     </property>
     <property name="tracking">
      <bool>false</bool>
@@ -48,7 +51,7 @@
      <enum>QSlider::TicksBelow</enum>
     </property>
     <property name="tickInterval">
-     <number>3</number>
+     <number>10</number>
     </property>
    </widget>
    <widget class="QLineEdit" name="Hztext">
@@ -57,7 +60,7 @@
     </property>
     <property name="geometry">
      <rect>
-      <x>460</x>
+      <x>380</x>
       <y>0</y>
       <width>41</width>
       <height>20</height>
@@ -67,7 +70,7 @@
      <string notr="true"/>
     </property>
     <property name="text">
-     <string>12Hz</string>
+     <string>60Hz</string>
     </property>
     <property name="readOnly">
      <bool>true</bool>
@@ -1677,6 +1680,19 @@ background-color: rgb(185, 225, 173);</string>
      <enum>QFrame::Raised</enum>
     </property>
    </widget>
+   <widget class="QPushButton" name="maxSpeed">
+    <property name="geometry">
+     <rect>
+      <x>430</x>
+      <y>0</y>
+      <width>91</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>Max Speed</string>
+    </property>
+   </widget>
    <zorder>frame</zorder>
    <zorder>hzSlider</zorder>
    <zorder>Hztext</zorder>
@@ -1743,11 +1759,12 @@ background-color: rgb(185, 225, 173);</string>
    <zorder>label_9</zorder>
    <zorder>label_10</zorder>
    <zorder>line</zorder>
-   <zorder>label_3</zorder>
-   <zorder>label_6</zorder>
+   <zorder>maxSpeed</zorder>
    <zorder>label_5</zorder>
-   <zorder>label_4</zorder>
+   <zorder>label_3</zorder>
    <zorder>label_2</zorder>
+   <zorder>label_6</zorder>
+   <zorder>label_4</zorder>
   </widget>
   <widget class="QToolBar" name="mainToolBar">
    <attribute name="toolBarArea">
