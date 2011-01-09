@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FlickerOptions>
+    <c0>0</c0>
+    <c1>255</c1>
+    <c2>0</c2>
+    <c3>0</c3>
+    <c4>255</c4>
+    <c5>0</c5>
+    <c6>0</c6>
+    <c7>0</c7>
+    <c8>255</c8>
+    <c9>0</c9>
+    <c10>0</c10>
+    <c11>255</c11>
+    <b0>30</b0>
+    <b1>83</b1>
+    <b2>100</b2>
+    <b3>73</b3>
+    <Speed>120</Speed>
+    <IsMaxSpeed>1</IsMaxSpeed>
+</FlickerOptions>
