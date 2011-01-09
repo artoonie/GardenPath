@@ -98,6 +98,8 @@ private:
                     int speed, bool isMaxSpeed);
     // Set up a single preset to display
     void loadPreset(FlickerSetting);
+    // Clear presets for reloading
+    void clearPresets();
 
     bool isSetMaxSpeed;
 

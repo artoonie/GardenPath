@@ -35,6 +35,7 @@
 #include <cstdlib>
 #include <QtGui>
 #include <QtOpenGL/QGLWidget>
+#include <QXmlStreamReader>
 #include <QTimer>
 #include <GL/glu.h>
 #include <qgl.h>
@@ -129,7 +130,8 @@ MainWindow::MainWindow(int timerInterval)
     presetList = new QList<FlickerSetting>();
     presetText = new QStringList();
     loadPresets();
-    loadPreset(presetList->at(0));
+    if(!presetList->isEmpty())
+        loadPreset(presetList->at(0));
 }
 
 /**
@@ -227,28 +229,78 @@ Load Presets: Load list of presets
 */
 void MainWindow::loadPresets()
 {
-    int colors_preset1[12] =
-     {127, 0, 0,
-      0, 255, 0,
-      0, 255, 0,
-      127, 0, 0};
-    int colors_preset2[12] =
-      {0, 255, 0,
-       0, 70, 0,
-       70, 0, 0,
-       255, 0, 0};
+    char* fileName;
+    QFile* fp;
+    QXmlStreamReader xmlr;
 
-    int brights[4] =
-     {100, 100, 100, 100};
+    // Get all .xml files
+    QStringList fileTypes;
+    fileTypes << "*.xml";
+    QDir dir;
+    QStringList fileList = dir.entryList(fileTypes);
 
-    int speed = 60;
-    bool isMaxSpeed = true;
+    for(int i=0; i<fileList.size(); ++i) {
+        fileName = fileList.at(i).toAscii().data();
+        fp = new QFile(fileName);
+        if(!fp->exists()) break;
 
-    addPresets("Red/Green, Green/Red", colors_preset1, brights, speed, isMaxSpeed);
+        if(!fp->open(QIODevice::ReadOnly)) {
+            qDebug("Unexpected error opening preset!");
+            return;
+        }
 
-    addPresets("Red/Red, Green/Green", colors_preset2, brights, speed, isMaxSpeed);
+        QString name = QString(fp->fileName());
+        name.chop(4);
+
+        bool isPresetFile = false; // Don't read random xml's
+        xmlr.setDevice(fp);
+        xmlr.readNext();
+
+        // Initialize
+        int colors[12]; int cindex = 0;
+        int brights[4]; int bindex = 0;
+        int speed;
+        bool isMaxSpeed;
+
+        while(!xmlr.atEnd()) {
+            if(xmlr.isStartElement()) {
+               QString name = xmlr.name().toString();
+               xmlr.readNext();
+               int text = atoi(xmlr.text().toString().toAscii());
+
+               if(name == "FlickerOptions") {
+                   isPresetFile = true;
+                   continue;
+               } else if(!isPresetFile) {
+                   break; // Leave this file, not what we want
+               } else if(name.at(0) == 'c') {
+                   colors[cindex] = text;
+                   ++cindex;
+               } else if(name.at(0) == 'b') {
+                   brights[bindex] = text;
+                   ++bindex;
+               } else if(name == "Speed") {
+                   speed = text;
+               } else if(name == "IsMaxSpeed") {
+                   isMaxSpeed = text == 1 ? true : false;
+               }
+            }
+            xmlr.readNext();
+        }
+        addPresets(name.toAscii(), colors, brights, speed, isMaxSpeed);
+        fp->close();
+    }
 }
 
+
+/**
+Clear Presets: Clear presets for reloading
+*/
+void MainWindow::clearPresets()
+{
+    presetList->clear();
+    presetText->clear();
+}
 
 
 /**
@@ -273,16 +325,16 @@ Save Preset: Commit current settings to memory under filename preset#.xml
 */
 void MainWindow::savePreset()
 {
-    int i=0;
-    char filename[24];
-    QFile* fp;
-    do {
-        ++i;
-        sprintf(filename, "preset%d.xml", i);
-        fp = new QFile(filename);
-    } while(fp->exists());
+    QString fileName = QFileDialog::getSaveFileName(this, "Save Preset",
+                                NULL, tr("XML Document (*.xml)"));
 
-    fp->open(QIODevice::WriteOnly);
+    if(!fileName.endsWith(".xml")) fileName.append(".xml");
+    QFile* fp = new QFile(fileName);
+
+    if(!fp->open(QIODevice::WriteOnly)) {
+        qDebug("Unexpected error saving preset!");
+        return;
+    }
     QXmlStreamWriter xmlWriter(fp);
     xmlWriter.setAutoFormatting(true);
     xmlWriter.writeStartDocument();
@@ -290,28 +342,28 @@ void MainWindow::savePreset()
     xmlWriter.writeStartElement("FlickerOptions");
 
     // Write 12 colors
-    xmlWriter.writeStartElement("ColorVals");
     char colorValText[4]; // Length 4: c12\0
     for(int i=0; i<12; i++) {
         sprintf(colorValText, "c%d", i);
         xmlWriter.writeTextElement(colorValText, QString::number(colorList[i]->value()));
     }
-    xmlWriter.writeEndElement();
 
     // Write 4 brightness vals
-    xmlWriter.writeStartElement("BrightnessVals");
     char brightnessValText[3];
     for(int i=0; i<4; i++) {
         sprintf(brightnessValText, "b%d", i);
         xmlWriter.writeTextElement(brightnessValText, QString::number(brightList[i]->value()));
     }
-    xmlWriter.writeEndElement();
 
     xmlWriter.writeTextElement("Speed", QString::number(ui.hzSlider->value()));
     xmlWriter.writeTextElement("IsMaxSpeed", isSetMaxSpeed ? "1" : "0");
 
     xmlWriter.writeEndDocument();
     fp->close();
+
+    // Reload
+    clearPresets();
+    loadPresets();
 }
 
 
