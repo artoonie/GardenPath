@@ -237,10 +237,13 @@ void MainWindow::loadPresets()
     QStringList fileTypes;
     fileTypes << "*.xml";
     QDir dir;
-    QStringList fileList = dir.entryList(fileTypes);
+    QFileInfoList fileList = dir.entryInfoList(fileTypes);
+    dir.setPath("presets");
+    fileList.append(dir.entryInfoList(fileTypes));
 
     for(int i=0; i<fileList.size(); ++i) {
-        fileName = fileList.at(i).toAscii().data();
+        QFileInfo fileInfo = fileList.at(i);
+        fileName = fileInfo.absoluteFilePath().toAscii().data();
         fp = new QFile(fileName);
         if(!fp->exists()) break;
 
@@ -249,8 +252,7 @@ void MainWindow::loadPresets()
             return;
         }
 
-        QString name = QString(fp->fileName());
-        name.chop(4);
+        QString name = QString(fileInfo.baseName());
 
         bool isPresetFile = false; // Don't read random xml's
         xmlr.setDevice(fp);
@@ -326,7 +328,7 @@ Save Preset: Commit current settings to memory under filename preset#.xml
 void MainWindow::savePreset()
 {
     QString fileName = QFileDialog::getSaveFileName(this, "Save Preset",
-                                NULL, tr("XML Document (*.xml)"));
+                                "./presets", tr("XML Document (*.xml)"));
 
     if(!fileName.endsWith(".xml")) fileName.append(".xml");
     QFile* fp = new QFile(fileName);
