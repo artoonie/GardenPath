@@ -5,6 +5,7 @@ View the full README at
 http://www.priceypixel.com/personal/gardenpath/index.html
 
 To run the application, double-click the executable.
+Place all presets in the /presets/ directory.
 The source code is provided but not needed. You may modify it as you wish.
 View the git repository at https://github.com/artoonie/GardenPath
 
