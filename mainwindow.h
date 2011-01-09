@@ -23,6 +23,7 @@
 #include <QMessageBox>
 
 #include "ui_mainwindow.h"
+#include "flickersetting.h"
 
 class Flickerer : public QGraphicsScene
 {
@@ -79,14 +80,24 @@ private:
     Flickerer *r;
     QGraphicsView *view;
     QGraphicsScene* scene;
-    void sliderMoved(int);
-    void presetWithColors(int colors[12]);
+    // void sliderMoved(int);
     QSlider* colorList[12];
     QLineEdit* colorTextList[12];
     QSlider* brightList[4];
     QLineEdit* brightTextList[4];
 
     QMessageBox* errmsg;
+
+    QList<FlickerSetting>* presetList;
+    QStringList* presetText;
+    // Load all presets from disk
+    void loadPresets();
+    // Add a single preset to preset list
+    void addPresets(const char* name,
+                    int* color_preset, int* brights,
+                    int speed, bool isMaxSpeed);
+    // Set up a single preset to display
+    void loadPreset(FlickerSetting);
 
     bool isSetMaxSpeed;
 
@@ -96,12 +107,12 @@ public slots:
     void updateTimer();
     void updateGradients();
     void updateBrightness();
-    void updateMaxSpeed();
-    void preset1();
-    void preset2();
+    void updateMaxSpeed(bool hasChanged = true); // If hasChanged, flip bool
+    void changePreset(QModelIndex);
     void beginSlot();
     void closeEvent(QCloseEvent *);
     void showBeginButton(); // Redisplay the begin button
+    void savePreset();
 };
 
 #endif // MAINWINDOW_H

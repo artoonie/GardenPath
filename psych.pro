@@ -22,9 +22,11 @@
 QT += opengl
 
 SOURCES += main.cpp\
-        mainwindow.cpp
+        mainwindow.cpp \
+    flickersetting.cpp
 
-HEADERS  += mainwindow.h
+HEADERS  += mainwindow.h \
+    flickersetting.h
 
 FORMS    += mainwindow.ui
 

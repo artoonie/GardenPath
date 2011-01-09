@@ -32,6 +32,7 @@
         b#: Blue Val, Color #[1-4]
  *******************************************************************/
 
+#include <cstdlib>
 #include <QtGui>
 #include <QtOpenGL/QGLWidget>
 #include <QTimer>
@@ -40,6 +41,7 @@
 
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
+#include "flickersetting.h"
 
 #define MAX_SPEED_VAL -1
 
@@ -55,6 +57,7 @@ MainWindow::MainWindow(int timerInterval)
 
     ui.setupUi(this);
     setWindowTitle("Options");
+    setFixedSize(this->size());
 
     // Set up graphics viewer
     r = new Flickerer(timerInterval);
@@ -99,8 +102,8 @@ MainWindow::MainWindow(int timerInterval)
     connect( ui.g2Center, SIGNAL(sliderMoved(int)), this, SLOT(updateGradients()));
     connect( ui.hzSlider, SIGNAL(sliderMoved(int)), this, SLOT(updateTimer()));
     connect( ui.maxSpeed, SIGNAL(released()), this, SLOT(updateMaxSpeed()));
-    connect( ui.Preset1, SIGNAL(released()), this, SLOT(preset1()));
-    connect( ui.Preset2, SIGNAL(released()), this, SLOT(preset2()));
+    connect( ui.saveSettings, SIGNAL(released()), this, SLOT(savePreset()));
+    connect( ui.presetList, SIGNAL(pressed(QModelIndex)), this, SLOT(changePreset(QModelIndex)));
 
     QSlider* colors[12] = {ui.G1R1, ui.G1G1, ui.G1B1,ui.G1R2, ui.G1G2, ui.G1B2,
                            ui.G2R1, ui.G2G1, ui.G2B1,ui.G2R2, ui.G2G2, ui.G2B2};
@@ -123,7 +126,10 @@ MainWindow::MainWindow(int timerInterval)
     }
 
     // Set default vals
-    preset1();
+    presetList = new QList<FlickerSetting>();
+    presetText = new QStringList();
+    loadPresets();
+    loadPreset(presetList->at(0));
 }
 
 /**
@@ -135,6 +141,7 @@ void MainWindow::updateAll()
     updateBrightness();
     updateColors(); // calls gradients
     updateTimer();
+    updateMaxSpeed(false);
 }
 
 /**
@@ -198,9 +205,11 @@ void MainWindow::updateColors()
     // Update the gradient to set the colors
     updateGradients();
 }
-void MainWindow::updateMaxSpeed()
+void MainWindow::updateMaxSpeed(bool hasChanged)
 {
-    if(!isSetMaxSpeed) {
+    if(hasChanged) isSetMaxSpeed = !isSetMaxSpeed;
+
+    if(isSetMaxSpeed) {
         r->setTimer(MAX_SPEED_VAL);
         ui.hzSlider->setEnabled(false);
         ui.Hztext->setText("Max");
@@ -210,66 +219,139 @@ void MainWindow::updateMaxSpeed()
         updateTimer();
         ui.maxSpeed->setText("Max Speed");
     }
-    isSetMaxSpeed = !isSetMaxSpeed;
 }
 
 
 /**
-Preset 1: Red->Green, then Green->Red
+Load Presets: Load list of presets
 */
-void MainWindow::preset1()
+void MainWindow::loadPresets()
 {
-    // Colors
-    int colors[12] =
+    int colors_preset1[12] =
      {127, 0, 0,
       0, 255, 0,
       0, 255, 0,
       127, 0, 0};
+    int colors_preset2[12] =
+      {0, 255, 0,
+       0, 70, 0,
+       70, 0, 0,
+       255, 0, 0};
 
-    presetWithColors(colors);
+    int brights[4] =
+     {100, 100, 100, 100};
+
+    int speed = 60;
+    bool isMaxSpeed = true;
+
+    addPresets("Red/Green, Green/Red", colors_preset1, brights, speed, isMaxSpeed);
+
+    addPresets("Red/Red, Green/Green", colors_preset2, brights, speed, isMaxSpeed);
 }
 
+
+
 /**
-Preset 2: Green->green, then Red->red
+Add Presets: Add a single preset to the list
 */
-void MainWindow::preset2()
+void MainWindow::addPresets(const char* name,
+                             int* color_preset, int* brights,
+                             int speed, bool isMaxSpeed)
 {
-    int colors[12] =
-     {0, 255, 0,
-      0, 70, 0,
-      70, 0, 0,
-      255, 0, 0};
+    FlickerSetting preset(name, color_preset, brights, speed, isMaxSpeed);
 
-    presetWithColors(colors);
+    presetList->append(preset);
+    *presetText << name;
+
+    ui.presetList->setModel(new QStringListModel(*presetText)); // Append to preset list
+}
+
+
+
+/**
+Save Preset: Commit current settings to memory under filename preset#.xml
+*/
+void MainWindow::savePreset()
+{
+    int i=0;
+    char filename[24];
+    QFile* fp;
+    do {
+        ++i;
+        sprintf(filename, "preset%d.xml", i);
+        fp = new QFile(filename);
+    } while(fp->exists());
+
+    fp->open(QIODevice::WriteOnly);
+    QXmlStreamWriter xmlWriter(fp);
+    xmlWriter.setAutoFormatting(true);
+    xmlWriter.writeStartDocument();
+
+    xmlWriter.writeStartElement("FlickerOptions");
+
+    // Write 12 colors
+    xmlWriter.writeStartElement("ColorVals");
+    char colorValText[4]; // Length 4: c12\0
+    for(int i=0; i<12; i++) {
+        sprintf(colorValText, "c%d", i);
+        xmlWriter.writeTextElement(colorValText, QString::number(colorList[i]->value()));
+    }
+    xmlWriter.writeEndElement();
+
+    // Write 4 brightness vals
+    xmlWriter.writeStartElement("BrightnessVals");
+    char brightnessValText[3];
+    for(int i=0; i<4; i++) {
+        sprintf(brightnessValText, "b%d", i);
+        xmlWriter.writeTextElement(brightnessValText, QString::number(brightList[i]->value()));
+    }
+    xmlWriter.writeEndElement();
+
+    xmlWriter.writeTextElement("Speed", QString::number(ui.hzSlider->value()));
+    xmlWriter.writeTextElement("IsMaxSpeed", isSetMaxSpeed ? "1" : "0");
+
+    xmlWriter.writeEndDocument();
+    fp->close();
+}
+
+
+/**
+Change Presets: Switch to a different preset
+*/
+void MainWindow::changePreset(QModelIndex modelIndex)
+{
+    int row = modelIndex.row();
+    loadPreset(presetList->at(row));
 }
 
 /**
-Preset with Colors:
-  Returns all sliders and the display to the given preset
+Load preset: Loads the settings provided
   */
-void MainWindow::presetWithColors(int colors[12])
+void MainWindow::loadPreset(FlickerSetting settings)
 {
     // Hz
-    ui.hzSlider->setSliderPosition(60);
+    ui.hzSlider->setSliderPosition(settings.speed);
 
     // Brightnesses
     for(int i=0; i<4; i++) {
-        brightList[i]->setValue(100);
-        brightTextList[i]->setText("100");
+        brightList[i]->setValue(settings.brightnessVals[i]);
+        brightTextList[i]->setText(QString::number(settings.brightnessVals[i]));
     }
     updateBrightness();
 
     // Colors
-    r->setColors(colors);
+    r->setColors(settings.colorVals);
 
     for(int i=0; i<12; i++) {
-        colorList[i]->setValue(colors[i]);
-        colorTextList[i]->setText(QString::number(colors[i]));
+        colorList[i]->setValue(settings.colorVals[i]);
+        colorTextList[i]->setText(QString::number(settings.colorVals[i]));
     }
 
     // Gradient offsets
     ui.g1Center->setValue(0);
     ui.g2Center->setValue(0);
+
+    isSetMaxSpeed = settings.isMaxSpeed;
 
     updateAll();
 }
