@@ -15,3 +15,6 @@ Version History:
 1.0.2 - Display  updated
 	Gradient offset disabled (12/22/2010)
 1.1.0 - Added load/save functionality (1/08/2011)
+1.2.0 - Removed brightness/center-of-gradient options
+	Removed non-openGL functionality
+	Added multiple-box options (1/16/2011)
