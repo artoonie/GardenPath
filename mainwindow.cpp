@@ -26,7 +26,6 @@
         c3: Gradient 2, Color 1
         c4: Gradient 2, Color 2
     Suffixes (always accompanied by one of the above):
-        br#: Brightness of color #[1-4]
         r#: Red Val, Color #[1-4]
         g#: Green Val, Color #[1-4]
         b#: Blue Val, Color #[1-4]
@@ -99,11 +98,11 @@ MainWindow::MainWindow(int timerInterval)
     // r->setFormat(fmt);
 
     connect( ui.beginButton, SIGNAL(released()), this, SLOT(beginSlot()) );
-    connect( ui.g1Center, SIGNAL(sliderMoved(int)), this, SLOT(updateGradients()));
-    connect( ui.g2Center, SIGNAL(sliderMoved(int)), this, SLOT(updateGradients()));
     connect( ui.hzSlider, SIGNAL(sliderMoved(int)), this, SLOT(updateTimer()));
+    connect( ui.boxSlider, SIGNAL(sliderMoved(int)), this, SLOT(updateBoxes()));
     connect( ui.maxSpeed, SIGNAL(released()), this, SLOT(updateMaxSpeed()));
     connect( ui.saveSettings, SIGNAL(released()), this, SLOT(savePreset()));
+    connect( ui.refreshSettings, SIGNAL(released()), this, SLOT(refreshPreset()));
     connect( ui.presetList, SIGNAL(pressed(QModelIndex)), this, SLOT(changePreset(QModelIndex)));
 
     QSlider* colors[12] = {ui.G1R1, ui.G1G1, ui.G1B1,ui.G1R2, ui.G1G2, ui.G1B2,
@@ -112,18 +111,11 @@ MainWindow::MainWindow(int timerInterval)
                             ui.G1R2T, ui.G1G2T, ui.G1B2T,
                             ui.G2R1T, ui.G2G1T, ui.G2B1T,
                             ui.G2R2T, ui.G2G2T, ui.G2B2T};
-    QSlider* brightness[4] = {ui.C1Br, ui.C2Br, ui.C3Br, ui.C4Br};
-    QLineEdit* brightTexts[4] = {ui.G1Br1T, ui.G1Br2T, ui.G2Br1T, ui.G2Br2T};
 
     for(int i=0; i<12; i++) {
         colorList[i] = colors[i];
         colorTextList[i] = texts[i];
-        connect( colors[i], SIGNAL(sliderMoved(int)), this, SLOT(updateColors()) );
-    }
-    for(int i=0; i<4; i++) {
-        brightList[i] = brightness[i];
-        brightTextList[i] = brightTexts[i];
-        connect( brightness[i], SIGNAL(sliderMoved(int)), this, SLOT(updateBrightness()) );
+        connect( colors[i], SIGNAL(valueChanged(int)), this, SLOT(updateColors()) );
     }
 
     // Set default vals
@@ -140,45 +132,34 @@ Update All:
 */
 void MainWindow::updateAll()
 {
-    updateBrightness();
     updateColors(); // calls gradients
     updateTimer();
     updateMaxSpeed(false);
+    updateBoxes();
+}
+
+/**
+Update Boxes:
+    Changes number of boxes displayed
+*/
+void MainWindow::updateBoxes()
+{
+    int num = ui.boxSlider->sliderPosition();
+    r->setBoxNum(num);
+
+    ui.numBoxes->setText(QString::number(num));
 }
 
 /**
 Update___
     Updates display with various information from sliders
 */
-void MainWindow::updateBrightness()
-{
-    // Brightness: Set max in UI
-    int brightVals[4];
-    for(int i=0; i<4; i++) {
-        brightVals[i] = brightList[i]->value();
-        brightTextList[i]->setText(QString::number(brightVals[i]));
-    }
-
-    r->setBrightScale(brightVals);
-    updateColors();
-}
-void MainWindow::updateGradients()
-{
-    // Center of gradients
-    int gOff = ui.g1Center->value();
-    int rOff = ui.g2Center->value();
-
-    r->gradOffset(gOff, rOff);
-
-    ui.g1Off->setText(QString::number(gOff));
-    ui.g2Off->setText(QString::number(rOff));
-}
 void MainWindow::updateTimer()
 {
-    int hz = ui.hzSlider->sliderPosition();
-    r->setTimer(hz); // In hertz
+    int fps = ui.hzSlider->sliderPosition();
+    r->setTimer(fps); // In frames per second
 
-    ui.Hztext->setText(QString::number(hz) + "Hz");
+    ui.Hztext->setText(QString::number(fps) + "fps");
 }
 void MainWindow::updateColors()
 {
@@ -203,9 +184,6 @@ void MainWindow::updateColors()
 
     // Display
     r->setColors(colorVals);
-
-    // Update the gradient to set the colors
-    updateGradients();
 }
 void MainWindow::updateMaxSpeed(bool hasChanged)
 {
@@ -258,11 +236,11 @@ void MainWindow::loadPresets()
         xmlr.setDevice(fp);
         xmlr.readNext();
 
-        // Initialize
+        // Initialize with default vals
         int colors[12]; int cindex = 0;
-        int brights[4]; int bindex = 0;
-        int speed;
-        bool isMaxSpeed;
+        int speed = 60;
+        bool isMaxSpeed = false;
+        int numBoxes = 1;
 
         while(!xmlr.atEnd()) {
             if(xmlr.isStartElement()) {
@@ -278,18 +256,17 @@ void MainWindow::loadPresets()
                } else if(name.at(0) == 'c') {
                    colors[cindex] = text;
                    ++cindex;
-               } else if(name.at(0) == 'b') {
-                   brights[bindex] = text;
-                   ++bindex;
                } else if(name == "Speed") {
                    speed = text;
+               } else if(name == "NumBoxes") {
+                   numBoxes = text;
                } else if(name == "IsMaxSpeed") {
                    isMaxSpeed = text == 1 ? true : false;
                }
             }
             xmlr.readNext();
         }
-        addPresets(name.toAscii(), colors, brights, speed, isMaxSpeed);
+        addPresets(name.toAscii(), colors, speed, isMaxSpeed);
         fp->close();
     }
 }
@@ -306,13 +283,23 @@ void MainWindow::clearPresets()
 
 
 /**
+Reset Presets: Reload from disk
+*/
+void MainWindow::refreshPreset()
+{
+    clearPresets();
+    loadPresets();
+}
+
+
+/**
 Add Presets: Add a single preset to the list
 */
 void MainWindow::addPresets(const char* name,
-                             int* color_preset, int* brights,
+                             int* color_preset,
                              int speed, bool isMaxSpeed)
 {
-    FlickerSetting preset(name, color_preset, brights, speed, isMaxSpeed);
+    FlickerSetting preset(name, color_preset, speed, isMaxSpeed);
 
     presetList->append(preset);
     *presetText << name;
@@ -330,11 +317,12 @@ void MainWindow::savePreset()
     QString fileName = QFileDialog::getSaveFileName(this, "Save Preset",
                                 "./presets", tr("XML Document (*.xml)"));
 
+    if(fileName.isEmpty()) return;
     if(!fileName.endsWith(".xml")) fileName.append(".xml");
     QFile* fp = new QFile(fileName);
 
     if(!fp->open(QIODevice::WriteOnly)) {
-        qDebug("Unexpected error saving preset!");
+        qDebug("Unexpected error saving preset");
         return;
     }
     QXmlStreamWriter xmlWriter(fp);
@@ -350,22 +338,15 @@ void MainWindow::savePreset()
         xmlWriter.writeTextElement(colorValText, QString::number(colorList[i]->value()));
     }
 
-    // Write 4 brightness vals
-    char brightnessValText[3];
-    for(int i=0; i<4; i++) {
-        sprintf(brightnessValText, "b%d", i);
-        xmlWriter.writeTextElement(brightnessValText, QString::number(brightList[i]->value()));
-    }
-
     xmlWriter.writeTextElement("Speed", QString::number(ui.hzSlider->value()));
+    xmlWriter.writeTextElement("NumBoxes", QString::number(ui.boxSlider->value()));
     xmlWriter.writeTextElement("IsMaxSpeed", isSetMaxSpeed ? "1" : "0");
 
     xmlWriter.writeEndDocument();
     fp->close();
 
     // Reload
-    clearPresets();
-    loadPresets();
+    refreshPreset();
 }
 
 
@@ -386,13 +367,6 @@ void MainWindow::loadPreset(FlickerSetting settings)
     // Hz
     ui.hzSlider->setSliderPosition(settings.speed);
 
-    // Brightnesses
-    for(int i=0; i<4; i++) {
-        brightList[i]->setValue(settings.brightnessVals[i]);
-        brightTextList[i]->setText(QString::number(settings.brightnessVals[i]));
-    }
-    updateBrightness();
-
     // Colors
     r->setColors(settings.colorVals);
 
@@ -400,10 +374,6 @@ void MainWindow::loadPreset(FlickerSetting settings)
         colorList[i]->setValue(settings.colorVals[i]);
         colorTextList[i]->setText(QString::number(settings.colorVals[i]));
     }
-
-    // Gradient offsets
-    ui.g1Center->setValue(0);
-    ui.g2Center->setValue(0);
 
     isSetMaxSpeed = settings.isMaxSpeed;
 
@@ -418,8 +388,6 @@ void MainWindow::beginSlot()
 {
     // ui.beginButton->hide();
 
-    //r->move(x()+width()+10,y());
-    //r->show();
     view->move(x()+width()+10,y());
     view->show();
 
@@ -452,7 +420,6 @@ Flickerer::Flickerer(int timerInterval)
         m_timer = 0;
     else
     {
-        // sets up a QTimer object to repaint the scene at the given rate (in milliseconds)
         m_timer = new QTimer( this );
         connect( m_timer, SIGNAL(timeout()), this, SLOT(timeOutSlot()) );
         m_timer->start( timerInterval );
@@ -461,34 +428,16 @@ Flickerer::Flickerer(int timerInterval)
     // Where in flicker?
     showingG1 = false;
 
-    g1_offset=0; g2_offset=0;
+    setBoxNum(1);
 }
 
 /**
 Initialize painter:
-  Creates default colors and a new Painter object
+  Sets some variables
 */
 void Flickerer::initPainter()
 {
     w = width(); h = height();
-    startx = -w/2; endx = w/2;
-    starty = -h/2; endy = h/2;
-
-    rect = new QRect(0,0, w, h);
-
-    g1c1 = new QColor(127,0,0);
-    g1c2 = new QColor(0,255,0);
-    g2c1 = new QColor(127,0,0);
-    g2c2 = new QColor(0,255,0);
-
-    gradOffset(0, 0);
-
-    // Init painters
-    p = new QPainter();
-
-    // buffer1 = new QPixmap(rect->width(), rect->height());
-    // buffer2 = new QPixmap(rect->width(), rect->height());
-    // setAttribute(Qt::WA_OpaquePaintEvent);
 }
 
 /**
@@ -516,12 +465,24 @@ void Flickerer::setTimer(int hz)
 }
 
 /**
+Set Box Nums:
+  Updates the number of boxes displayed
+*/
+void Flickerer::setBoxNum(int num)
+{
+    if(num < 1) num = 1;
+    numBoxes = num;
+
+    wLength = ceil((double)w / numBoxes);
+    hLength = ceil((double)h / numBoxes);
+    steps = 1.0f / (numBoxes > 1 ? (numBoxes-1) : 1); // For var amtC#inC#
+}
+
+/**
 Set various colors:
   Updates the color in each gradient
 */
 void Flickerer::setColors(int colorVals[]) {
-    QColor* colorDisp[4] = {g1c1, g1c2, g2c1, g2c2};
-
     for(int i=0; i<12; i+=3) {
         float* curr_rgb;
         if(i==0)       curr_rgb = g1c1_rgb;
@@ -529,65 +490,11 @@ void Flickerer::setColors(int colorVals[]) {
         else if(i==6)  curr_rgb = g2c1_rgb;
         else           curr_rgb = g2c2_rgb;
 
-        double scale = (brightVals[i/3]/100.0);
-
-        curr_rgb[0] = colorVals[i+0]*scale / 255.0;  // R
-        curr_rgb[1] = colorVals[i+1]*scale / 255.0;  // G
-        curr_rgb[2] = colorVals[i+2]*scale / 255.0;  // B
-
-        colorDisp[i/3]->setRgb(curr_rgb[0], curr_rgb[1], curr_rgb[2]);
-    }
-
-//    p->begin(buffer1);
-//    p->fillRect(*rect, *g1);
-//    p->end();
-
-//    p->begin(buffer2);
-//    p->fillRect(*rect, *g2);
-//    p->end();
-}
-
-/**
-Set Bright Scale:
-    Sets the brightness scale factor, 1-100%
-*/
-void Flickerer::setBrightScale(int vals[4])
-{
-    for(int i=0; i<4; i++) {
-        int val = vals[i];
-        if(val<1) val=1;
-        else if(val>100) val=100;
-        brightVals[i] = val;
+        curr_rgb[0] = colorVals[i+0] / 255.0;  // R
+        curr_rgb[1] = colorVals[i+1] / 255.0;  // G
+        curr_rgb[2] = colorVals[i+2] / 255.0;  // B
     }
 }
-
-/**
-Gradient offset:
-   Updates the offsets in each gradient
-*/
-void Flickerer::gradOffset(int g1_off, int g2_off) {
-    g1_offset = g1_off;
-    g2_offset = g2_off;
-
-
-//    double g1_off1=0, g1_off2=0, g2_off1=0, g2_off2=0;
-
-//    if(g1_off > 0)      g1_off1=g1_off/100.0;
-//    else if(g1_off < 0) g1_off2=g1_off/100.0;
-
-//    if(g2_off > 0)      g2_off1=g2_off/100.0;
-//    else if(g2_off < 0) g2_off2=g2_off/100.0;
-
-//    if(g1==NULL) { free(g1); free(g2); }
-
-//    g1 = new QLinearGradient(0, h, w, h);
-//    g2 = new QLinearGradient(0, h, w, h);
-//    g1->setColorAt(g1_off1,     *g1c1);
-//    g1->setColorAt(1.0+g1_off2, *g1c2);
-//    g2->setColorAt(g2_off1,     *g2c1);
-//    g2->setColorAt(1.0+g2_off2, *g2c2);
-}
-
 
 /**
 drawBackground
@@ -596,97 +503,66 @@ drawBackground
 void Flickerer::drawBackground(QPainter *painter,
                                    const QRectF &)
 {
-    // qDebug("Drawing background");
+//    qDebug("Drawing background");
 
-    if (painter->paintEngine()->type() != QPaintEngine::OpenGL
-        && painter->paintEngine()->type() != QPaintEngine::OpenGL2)
-        qWarning("OpenGLScene: drawBackground needs a QGLWidget to be set as viewport on the graphics view");
+//    if (painter->paintEngine()->type() != QPaintEngine::OpenGL
+//        && painter->paintEngine()->type() != QPaintEngine::OpenGL2)
+//        qWarning("OpenGLScene: drawBackground needs a QGLWidget to be set as viewport on the graphics view");
+
+    bool startedWithG1 = showingG1;
 
     painter->beginNativePainting();
     glClearColor(0.0f, 1.0f, 0.0f, 1.0f);
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT);
-    float *c1_rgb, *c2_rgb;
-    if(showingG1) {
-        c1_rgb = g1c1_rgb;
-        c2_rgb = g1c2_rgb;
-    } else {
-        c1_rgb = g2c1_rgb;
-        c2_rgb = g2c2_rgb;
-    }
 
     glMatrixMode(GL_MODELVIEW);
     glPushMatrix();
     glLoadIdentity();
-    glBegin(GL_QUADS);
 
-    glColor3f(c1_rgb[0], c1_rgb[1], c1_rgb[2]);
-    glVertex2d(0, 0);
-    glVertex2d(0, h);
+    for(int col=0; col < numBoxes; ++col) {
+        if(col % 2 == 0)
+            showingG1 = startedWithG1;
+        else
+            showingG1 = !startedWithG1;
 
-    glColor3f(c2_rgb[0], c2_rgb[1], c2_rgb[2]);
-    glVertex2d(w, h);
-    glVertex2d(w, 0);
+        float amtC2inC1 = 0.0f; // Also amtC1inC2
+        float amtC1inC1 = 1.0f; // Also amtC2inC2
 
-    glEnd();
+        for(int row=0; row < numBoxes; ++row) {
+            // Where to begin drawing
+            int wStart = col*w / numBoxes;
+            int hStart = row*h / numBoxes;
+
+            glBegin(GL_QUADS);
+
+            float* c1 = showingG1 ? g1c1_rgb : g2c1_rgb;
+            float* c2 = showingG1 ? g1c2_rgb : g2c2_rgb;
+            float currC1[3]; float currC2[3];
+            for(int i=0; i<3; i++) {
+                currC1[i] = c1[i]*amtC1inC1 + c2[i]*amtC2inC1;
+                currC2[i] = c2[i]*amtC1inC1 + c1[i]*amtC2inC1;
+            }
+
+            glColor3f(currC1[0], currC1[1], currC1[2]);
+            glVertex2d(wStart, hStart);
+            glVertex2d(wStart + wLength, hStart);
+
+            glColor3f(currC2[0], currC2[1], currC2[2]);
+            glVertex2d(wStart + wLength, hStart + hLength);
+            glVertex2d(wStart, hStart + hLength);
+
+            glEnd();
+
+
+            // How true to the c1/c2 gradient this row is
+            amtC2inC1 += steps;      // Also amtC1inC2
+            amtC1inC1 -= steps; // Also amtC2inC2
+
+            showingG1 = !showingG1;
+        }
+    }
     glPopMatrix();
     painter->endNativePainting();
 
-    showingG1 = !showingG1;
+    showingG1 = !startedWithG1;
 }
-
-/**
-Repaint:
-  Redraws the gradient (without OpenGL)
-*/
-/*
-void Flickerer::paintEvent(QPaintEvent*)
-{
-//    qDebug("Painting.");
-//    p->beginNativePainting();
-//    glClearColor(.5f, .5f, 1.0f, 1.0f);
-//    if(showingG1)
-//        p->drawPixmap(*rect, *buffer1);
-//    else
-//        p->drawPixmap(*rect, *buffer2);
-//    p->endNativePainting();
-//    qDebug("Painting");
-
-//    if (p->paintEngine()->type() != QPaintEngine::OpenGL
-//        && p->paintEngine()->type() != QPaintEngine::OpenGL2)
-//        qWarning("OpenGLScene: drawBackground needs a QGLWidget to be set as viewport on the graphics view");
-
-    // p->beginNativePainting();
-
-
-    float *c1_rgb, *c2_rgb;
-    if(showingG1) {
-        c1_rgb = g1c1_rgb;
-        c2_rgb = g1c2_rgb;
-    } else {
-        c1_rgb = g2c1_rgb;
-        c2_rgb = g2c2_rgb;
-    }
-    glViewport(0, 0, w, h);
-    glMatrixMode(GL_PROJECTION);
-    glLoadIdentity();
-
-    glMatrixMode(GL_MODELVIEW);
-    glPushMatrix();
-    glLoadIdentity();
-    glBegin(GL_QUADS);
-
-    glColor3f(c1_rgb[0], c1_rgb[1], c1_rgb[2]);
-    glVertex2d(startx, starty);
-    glVertex2d(startx, endy);
-
-    glColor3f(c2_rgb[0], c2_rgb[1], c2_rgb[2]);
-    glVertex2d(endx, endy);
-    glVertex2d(endx, starty);
-
-    glEnd();
-    glPopMatrix();
-    // p->endNativePainting();
-
-    showingG1 = !showingG1;
-}
-*/

@@ -34,10 +34,9 @@ public:
     void paintGL();
     void drawBackground(QPainter*, const QRectF&);
     void setTimer(int);
+    void setBoxNum(int);
 
     void setColors(int vals[12]);
-    void gradOffset(int, int);
-    void setBrightScale(int vals[4]);
     void initPainter();
 
 private:
@@ -45,19 +44,17 @@ private:
     QTimer *m_timer;
 
     //displays
-    QRect *rect;
-    QPainter* p;
-    QLinearGradient *g1, *g2, *curr;
-    QColor *g1c1, *g1c2; float g1c1_rgb[3];
-                         float g1c2_rgb[3];
-    QColor *g2c1, *g2c2; float g2c1_rgb[3];
-                         float g2c2_rgb[3];
-    QPixmap *buffer1, *buffer2;
-    int g1_offset, g2_offset;   // Gradient offset, -100-100
-    int brightVals[4];          // Brightness scaling, 1-100%
+    float g1c1_rgb[3];
+    float g1c2_rgb[3];
+    float g2c1_rgb[3];
+    float g2c2_rgb[3];
 
     int w, h;
-    int startx, starty, endx, endy;
+
+    //boxes
+    int numBoxes;
+    int wLength, hLength; // How big each box is
+    float steps; // For updating var amtC#inC#
 
     bool showingG1;
 
@@ -77,16 +74,15 @@ public:
     Ui::MainWindow ui;
 
 private:
+    // Display
     Flickerer *r;
     QGraphicsView *view;
     QGraphicsScene* scene;
-    // void sliderMoved(int);
     QSlider* colorList[12];
     QLineEdit* colorTextList[12];
-    QSlider* brightList[4];
-    QLineEdit* brightTextList[4];
-
     QMessageBox* errmsg;
+
+    bool isSetMaxSpeed;
 
     QList<FlickerSetting>* presetList;
     QStringList* presetText;
@@ -94,27 +90,25 @@ private:
     void loadPresets();
     // Add a single preset to preset list
     void addPresets(const char* name,
-                    int* color_preset, int* brights,
+                    int* color_preset,
                     int speed, bool isMaxSpeed);
     // Set up a single preset to display
     void loadPreset(FlickerSetting);
     // Clear presets for reloading
     void clearPresets();
 
-    bool isSetMaxSpeed;
-
 public slots:
     void updateAll();
     void updateColors();
     void updateTimer();
-    void updateGradients();
-    void updateBrightness();
+    void updateBoxes();
     void updateMaxSpeed(bool hasChanged = true); // If hasChanged, flip bool
     void changePreset(QModelIndex);
     void beginSlot();
     void closeEvent(QCloseEvent *);
     void showBeginButton(); // Redisplay the begin button
     void savePreset();
+    void refreshPreset();
 };
 
 #endif // MAINWINDOW_H
