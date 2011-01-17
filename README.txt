@@ -1,5 +1,5 @@
-Version 1.1.0
-Last modified 1/08/2011
+Version 1.2.0
+Last modified 1/16/2011
 
 View the full README at
 http://www.priceypixel.com/personal/gardenpath/index.html
