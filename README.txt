@@ -2,7 +2,7 @@ Version 1.2.0
 Last modified 1/16/2011
 
 View the full README at
-http://www.priceypixel.com/personal/gardenpath/index.html
+http://www.priceypixel.com/personal/gardenpath/index.php
 
 To run the application, double-click the executable.
 Place all presets in the /presets/ directory.
