@@ -119,6 +119,7 @@ MainWindow::MainWindow(int timerInterval)
     }
 
     // Set default vals
+    numBoxes = 1;
     presetList = new QList<FlickerSetting>();
     presetText = new QStringList();
     loadPresets();
@@ -144,10 +145,10 @@ Update Boxes:
 */
 void MainWindow::updateBoxes()
 {
-    int num = ui.boxSlider->sliderPosition();
-    r->setBoxNum(num);
+    numBoxes = ui.boxSlider->sliderPosition();
+    r->setBoxNum(numBoxes);
 
-    ui.numBoxes->setText(QString::number(num));
+    ui.numBoxes->setText(QString::number(numBoxes));
 }
 
 /**
@@ -266,7 +267,7 @@ void MainWindow::loadPresets()
             }
             xmlr.readNext();
         }
-        addPresets(name.toAscii(), colors, speed, isMaxSpeed);
+        addPresets(name.toAscii(), colors, speed, isMaxSpeed, numBoxes);
         fp->close();
     }
 }
@@ -297,9 +298,10 @@ Add Presets: Add a single preset to the list
 */
 void MainWindow::addPresets(const char* name,
                              int* color_preset,
-                             int speed, bool isMaxSpeed)
+                             int speed, bool isMaxSpeed,
+                             int numBoxes)
 {
-    FlickerSetting preset(name, color_preset, speed, isMaxSpeed);
+    FlickerSetting preset(name, color_preset, speed, isMaxSpeed, numBoxes);
 
     presetList->append(preset);
     *presetText << name;
@@ -376,6 +378,7 @@ void MainWindow::loadPreset(FlickerSetting settings)
     }
 
     isSetMaxSpeed = settings.isMaxSpeed;
+    numBoxes = settings.numBoxes;
 
     updateAll();
 }

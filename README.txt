@@ -1,5 +1,5 @@
-Version 1.2.0
-Last modified 1/16/2011
+Version 1.2.2
+Last modified 1/31/2011
 
 View the full README at
 http://www.priceypixel.com/personal/gardenpath/index.php
@@ -18,3 +18,6 @@ Version History:
 1.2.0 - Removed brightness/center-of-gradient options
 	Removed non-openGL functionality
 	Added multiple-box options (1/16/2011)
+1.2.1 - Updated multiple-box option to have gradients
+	only across boxes, not within. (1/21/2011)
+1.2.2 - Switched direction of gradient#2 (1/31/2011)
