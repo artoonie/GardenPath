@@ -550,7 +550,8 @@ void Flickerer::drawBackground(QPainter *painter,
             glVertex2d(wStart, hStart);
             glVertex2d(wStart + wLength, hStart);
 
-            glColor3f(currC2[0], currC2[1], currC2[2]);
+            if(numBoxes == 1)
+                glColor3f(currC2[0], currC2[1], currC2[2]);
             glVertex2d(wStart + wLength, hStart + hLength);
             glVertex2d(wStart, hStart + hLength);
 
