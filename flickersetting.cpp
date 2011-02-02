@@ -5,7 +5,7 @@
 FlickerSetting::FlickerSetting(const char* myName,
                                int myColorVals[],
                                int mySpeed, bool myIsMaxSpeed,
-                               int numBoxes)
+                               int myNumBoxes)
 {
     name = myName;
 
@@ -14,4 +14,5 @@ FlickerSetting::FlickerSetting(const char* myName,
 
     speed = mySpeed;
     isMaxSpeed = myIsMaxSpeed;
+    numBoxes = myNumBoxes;
 }

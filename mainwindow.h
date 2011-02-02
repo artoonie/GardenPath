@@ -92,8 +92,7 @@ private:
     // Add a single preset to preset list
     void addPresets(const char* name,
                     int* color_preset,
-                    int speed, bool isMaxSpeed,
-                    int numBoxes);
+                    int speed);
     // Set up a single preset to display
     void loadPreset(FlickerSetting);
     // Clear presets for reloading

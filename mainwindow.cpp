@@ -240,8 +240,7 @@ void MainWindow::loadPresets()
         // Initialize with default vals
         int colors[12]; int cindex = 0;
         int speed = 60;
-        bool isMaxSpeed = false;
-        int numBoxes = 1;
+        isSetMaxSpeed = false;
 
         while(!xmlr.atEnd()) {
             if(xmlr.isStartElement()) {
@@ -262,12 +261,12 @@ void MainWindow::loadPresets()
                } else if(name == "NumBoxes") {
                    numBoxes = text;
                } else if(name == "IsMaxSpeed") {
-                   isMaxSpeed = text == 1 ? true : false;
+                   isSetMaxSpeed = text == 1 ? true : false;
                }
             }
             xmlr.readNext();
         }
-        addPresets(name.toAscii(), colors, speed, isMaxSpeed, numBoxes);
+        addPresets(name.toAscii(), colors, speed);
         fp->close();
     }
 }
@@ -298,10 +297,9 @@ Add Presets: Add a single preset to the list
 */
 void MainWindow::addPresets(const char* name,
                              int* color_preset,
-                             int speed, bool isMaxSpeed,
-                             int numBoxes)
+                             int speed)
 {
-    FlickerSetting preset(name, color_preset, speed, isMaxSpeed, numBoxes);
+    FlickerSetting preset(name, color_preset, speed, isSetMaxSpeed, numBoxes);
 
     presetList->append(preset);
     *presetText << name;
@@ -366,7 +364,7 @@ Load preset: Loads the settings provided
   */
 void MainWindow::loadPreset(FlickerSetting settings)
 {
-    // Hz
+    // Fps
     ui.hzSlider->setSliderPosition(settings.speed);
 
     // Colors
@@ -378,7 +376,9 @@ void MainWindow::loadPreset(FlickerSetting settings)
     }
 
     isSetMaxSpeed = settings.isMaxSpeed;
+
     numBoxes = settings.numBoxes;
+    ui.boxSlider->setSliderPosition(numBoxes);
 
     updateAll();
 }
