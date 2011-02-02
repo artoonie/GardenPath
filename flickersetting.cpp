@@ -4,7 +4,8 @@
 // (Dangerously) assumes correct number of values in passed in arrays
 FlickerSetting::FlickerSetting(const char* myName,
                                int myColorVals[],
-                               int mySpeed, bool myIsMaxSpeed)
+                               int mySpeed, bool myIsMaxSpeed,
+                               int numBoxes)
 {
     name = myName;
 

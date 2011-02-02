@@ -83,6 +83,7 @@ private:
     QMessageBox* errmsg;
 
     bool isSetMaxSpeed;
+    int numBoxes;
 
     QList<FlickerSetting>* presetList;
     QStringList* presetText;
@@ -91,7 +92,8 @@ private:
     // Add a single preset to preset list
     void addPresets(const char* name,
                     int* color_preset,
-                    int speed, bool isMaxSpeed);
+                    int speed, bool isMaxSpeed,
+                    int numBoxes);
     // Set up a single preset to display
     void loadPreset(FlickerSetting);
     // Clear presets for reloading

@@ -1410,53 +1410,6 @@ background-color: rgb(185, 225, 173);</string>
       <set>Qt::AlignCenter</set>
      </property>
     </widget>
-    <zorder>presetList</zorder>
-    <zorder>presetText</zorder>
-    <zorder>G1G2</zorder>
-    <zorder>lineEdit_13</zorder>
-    <zorder>G2B1</zorder>
-    <zorder>lineEdit_7</zorder>
-    <zorder>G1G1</zorder>
-    <zorder>G1R1</zorder>
-    <zorder>lineEdit_14</zorder>
-    <zorder>G1B2T</zorder>
-    <zorder>lineEdit_8</zorder>
-    <zorder>lineEdit_6</zorder>
-    <zorder>g1c1t</zorder>
-    <zorder>G2R2</zorder>
-    <zorder>lineEdit_11</zorder>
-    <zorder>G2G2T</zorder>
-    <zorder>G1G1T</zorder>
-    <zorder>G1B1T</zorder>
-    <zorder>lineEdit</zorder>
-    <zorder>G2G2</zorder>
-    <zorder>G1R1T</zorder>
-    <zorder>g2c1t</zorder>
-    <zorder>G2R2T</zorder>
-    <zorder>G1G2T</zorder>
-    <zorder>G2G1</zorder>
-    <zorder>lineEdit_2</zorder>
-    <zorder>G1R2</zorder>
-    <zorder>lineEdit_9</zorder>
-    <zorder>G2R1T</zorder>
-    <zorder>G1B1</zorder>
-    <zorder>lineEdit_12</zorder>
-    <zorder>G1R2T</zorder>
-    <zorder>G2B2T</zorder>
-    <zorder>G1B2</zorder>
-    <zorder>lineEdit_3</zorder>
-    <zorder>lineEdit_5</zorder>
-    <zorder>g1c2t</zorder>
-    <zorder>G2B2</zorder>
-    <zorder>G2R1</zorder>
-    <zorder>G2G1T</zorder>
-    <zorder>G2B1T</zorder>
-    <zorder>lineEdit_4</zorder>
-    <zorder>lineEdit_10</zorder>
-    <zorder>g2c2t</zorder>
-    <zorder>lineEdit_15</zorder>
-    <zorder>lineEdit_16</zorder>
-    <zorder>line</zorder>
    </widget>
    <widget class="QPushButton" name="maxSpeed">
     <property name="geometry">
@@ -1528,7 +1481,7 @@ background-color: rgb(185, 225, 173);</string>
      <string notr="true"/>
     </property>
     <property name="text">
-     <string>0</string>
+     <string>1</string>
     </property>
     <property name="readOnly">
      <bool>true</bool>
@@ -1581,7 +1534,6 @@ background-color: rgb(185, 225, 173);</string>
    <zorder>refreshSettings</zorder>
    <zorder>numBoxes</zorder>
    <zorder>boxSlider</zorder>
-   <zorder>lineEdit_15</zorder>
    <zorder>hzSlider</zorder>
    <zorder>Hztext</zorder>
    <zorder>beginButton</zorder>

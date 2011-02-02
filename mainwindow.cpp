@@ -119,6 +119,7 @@ MainWindow::MainWindow(int timerInterval)
     }
 
     // Set default vals
+    numBoxes = 1;
     presetList = new QList<FlickerSetting>();
     presetText = new QStringList();
     loadPresets();
@@ -144,10 +145,10 @@ Update Boxes:
 */
 void MainWindow::updateBoxes()
 {
-    int num = ui.boxSlider->sliderPosition();
-    r->setBoxNum(num);
+    numBoxes = ui.boxSlider->sliderPosition();
+    r->setBoxNum(numBoxes);
 
-    ui.numBoxes->setText(QString::number(num));
+    ui.numBoxes->setText(QString::number(numBoxes));
 }
 
 /**
@@ -266,7 +267,7 @@ void MainWindow::loadPresets()
             }
             xmlr.readNext();
         }
-        addPresets(name.toAscii(), colors, speed, isMaxSpeed);
+        addPresets(name.toAscii(), colors, speed, isMaxSpeed, numBoxes);
         fp->close();
     }
 }
@@ -297,9 +298,10 @@ Add Presets: Add a single preset to the list
 */
 void MainWindow::addPresets(const char* name,
                              int* color_preset,
-                             int speed, bool isMaxSpeed)
+                             int speed, bool isMaxSpeed,
+                             int numBoxes)
 {
-    FlickerSetting preset(name, color_preset, speed, isMaxSpeed);
+    FlickerSetting preset(name, color_preset, speed, isMaxSpeed, numBoxes);
 
     presetList->append(preset);
     *presetText << name;
@@ -376,6 +378,7 @@ void MainWindow::loadPreset(FlickerSetting settings)
     }
 
     isSetMaxSpeed = settings.isMaxSpeed;
+    numBoxes = settings.numBoxes;
 
     updateAll();
 }
@@ -535,8 +538,8 @@ void Flickerer::drawBackground(QPainter *painter,
 
             glBegin(GL_QUADS);
 
-            float* c1 = showingG1 ? g1c1_rgb : g2c1_rgb;
-            float* c2 = showingG1 ? g1c2_rgb : g2c2_rgb;
+            float* c1 = showingG1 ? g1c1_rgb : g2c2_rgb;
+            float* c2 = showingG1 ? g1c2_rgb : g2c1_rgb;
             float currC1[3]; float currC2[3];
             for(int i=0; i<3; i++) {
                 currC1[i] = c1[i]*amtC1inC1 + c2[i]*amtC2inC1;
@@ -547,7 +550,8 @@ void Flickerer::drawBackground(QPainter *painter,
             glVertex2d(wStart, hStart);
             glVertex2d(wStart + wLength, hStart);
 
-            glColor3f(currC2[0], currC2[1], currC2[2]);
+            if(numBoxes == 1)
+                glColor3f(currC2[0], currC2[1], currC2[2]);
             glVertex2d(wStart + wLength, hStart + hLength);
             glVertex2d(wStart, hStart + hLength);
 
