@@ -52,7 +52,7 @@ Constructor:
 */
 MainWindow::MainWindow(int timerInterval)
 {
-    int width = 400; int height = 400;
+    int width = 800; int height = 800;
     isSetMaxSpeed = false;
 
     ui.setupUi(this);
@@ -61,6 +61,7 @@ MainWindow::MainWindow(int timerInterval)
 
     // Set up graphics viewer
     r = new Flickerer(timerInterval);
+    r->setSize(QSize(width,height));
     // r->resize(width, height);
     r->setSceneRect(0, 0, width, height);
     r->initPainter();
@@ -94,6 +95,7 @@ MainWindow::MainWindow(int timerInterval)
     view->setMaximumSize(width, height);
     view->setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
     view->setHorizontalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
+    view->setResizeAnchor(QGraphicsView::AnchorViewCenter);
 
     // r->setFormat(fmt);
 
@@ -455,6 +457,15 @@ void Flickerer::timeOutSlot()
 }
 
 /**
+Set size:
+  Updates the width and height
+*/
+void Flickerer::setSize(QSize size)
+{
+    w=size.width(); h=size.height();
+}
+
+/**
 Set timer:
   Updates the timer speed
 */
@@ -538,8 +549,8 @@ void Flickerer::drawBackground(QPainter *painter,
 
             glBegin(GL_QUADS);
 
-            float* c1 = showingG1 ? g1c1_rgb : g2c2_rgb;
-            float* c2 = showingG1 ? g1c2_rgb : g2c1_rgb;
+            float* c1 = showingG1 ? g1c1_rgb : g2c1_rgb;
+            float* c2 = showingG1 ? g1c2_rgb : g2c2_rgb;
             float currC1[3]; float currC2[3];
             for(int i=0; i<3; i++) {
                 currC1[i] = c1[i]*amtC1inC1 + c2[i]*amtC2inC1;

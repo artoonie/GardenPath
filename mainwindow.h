@@ -35,6 +35,7 @@ public:
     void drawBackground(QPainter*, const QRectF&);
     void setTimer(int);
     void setBoxNum(int);
+    void setSize(QSize);
 
     void setColors(int vals[12]);
     void initPainter();
@@ -61,7 +62,6 @@ private:
 public slots:
   //slot used to refresh scene when invoked by m_timer
   void timeOutSlot();
-
 };
 
 
